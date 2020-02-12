@@ -1,4 +1,8 @@
 from flask import Flask, request, jsonify
+import psycopg2
+
+conn = psycopg2.connect(database="tweetdb", user="postgres", password="test", host="127.0.0.1", port="5432")
+
 
 api = Flask(__name__)
 
@@ -15,5 +19,6 @@ def get_tweets():
 def get_tweets_from_db():
     pass
     # TODO
+
 
 api.run()
