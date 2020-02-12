@@ -7,7 +7,6 @@ s# information-retrieval-project
 
 Create `.env` file in root path replacing the bracketed values:
 
-	SECRET_KEY=<the output of `openssl rand -base64 42`>
 	POSTGRES_USER=<USERNAME>
 	POSTGRES_PASS=<PASSWORD>
 	POSTGRES_HOST=<HOST>
@@ -18,6 +17,7 @@ Create `.env` file in root path replacing the bracketed values:
     ACCESS_TOKEN_SECRET=<>
 
 
-### Create DB
+### Create DB, search and fill tweets in DB
     source env/bin/activate
 	python create_database
+	python fill_database
