@@ -5,7 +5,7 @@ s# information-retrieval-project
     source env/bin/activate
     pip install -r requirements.txt
 
-Create `.prod.env` file in root path replacing the bracketed values:
+Create `.env` file in root path replacing the bracketed values:
 
 	SECRET_KEY=<the output of `openssl rand -base64 42`>
 	POSTGRES_USER=<USERNAME>
