@@ -1,8 +1,27 @@
-import twitter
+import os
+import tweepy as tw
+import pandas as pd
 
-api = twitter.Api(consumer_key='0PR4TCmxevtwTmR7ELCatKZqR',
-                  consumer_secret='Zb6hrXSaRRGhUksvv1UFyu6L2HwPsDHBvME0mYG3sex37BC6n0',
-                  access_token_key='1225752542895857664-K56DSpMKDcMFhizcPYh42gLtZDMaUs',
-                  access_token_secret='pb73NtkkRkkeUqfI48msKQZQLURZnOhTxAHh4CtIIaWRl')
 
-print(api.VerifyCredentials())
+consumer_key=''
+consumer_secret=''
+access_token=''
+access_token_secret=''
+
+auth = tw.OAuthHandler(consumer_key, consumer_secret)
+auth.set_access_token(access_token, access_token_secret)
+api = tw.API(auth, wait_on_rate_limit=True)
+
+# Define the search term and the date_since date as variables
+search_words = "Birmingham Wholesale Market is ablaze BBC News - Fire breaks out at Birmingham's Wholesale Market http://t.co/irWqCEZWEU"
+date_since = "2020-01-30"
+
+tweets = tw.Cursor(api.search,
+              q=search_words,
+              lang="en",
+              since=date_since).items(1)
+
+tweet = api.get_status(629195955506708480)
+
+print(tweet.user.location)
+print(tweet)
