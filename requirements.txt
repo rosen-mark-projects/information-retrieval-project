@@ -1,5 +1,7 @@
-tweepy
-flask
-pandas
+tweepy==3.8.0
+Flask==1.1.1
+pandas==1.0.1
 tensorflow >= 1.11.0   # CPU Version of TensorFlow.
+psycopg2==2.8.4
+numpy==1.18.1
 # tensorflow-gpu  >= 1.11.0  # GPU version of TensorFlow.r
