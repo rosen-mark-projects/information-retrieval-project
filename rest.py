@@ -2,6 +2,7 @@ import os
 
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import psycopg2
 
 
@@ -18,6 +19,7 @@ conn = psycopg2.connect(database=POSTGRES_DB, user=POSTGRES_USER,
 
 
 app = Flask(__name__)
+CORS(app)
 
 
 @app.route('/tweets', methods=['GET'])
@@ -27,7 +29,6 @@ def get_tweets():
     tweets = get_tweets_from_db(keyword)
     respData = convert_to_dicts(tweets)
     response = jsonify(respData)
-    response.headers.add('Access-Control-Allow-Origin', '*')
     return response
 
 
