@@ -45,9 +45,9 @@ def convert_to_dicts(tweets):
     dicts = []
     for tweet in tweets:
         dict = {}
-        dict['text'] = tweet[1]
-        dict['keyword'] = tweet[2]
-        dict['link'] = tweet[3]
+        dict['text'] = tweet[0]
+        dict['keyword'] = tweet[1]
+        dict['url'] = tweet[2]
         dict['target'] = 0
         dicts.append(dict)
 

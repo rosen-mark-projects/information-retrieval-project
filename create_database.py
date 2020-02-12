@@ -45,6 +45,9 @@ class Tweets(Base):
     text = Column(String, nullable=False)
     url = Column(String, nullable=True)
 
+    __table_args__ = (UniqueConstraint('datetime', 'tweet_id',
+                                       name='tweet_id_datetime_uc'),)
+
 
 def loadSession():
     """create session"""
