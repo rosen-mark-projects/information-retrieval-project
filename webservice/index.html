@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
 	<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 	<script src="./client.js"></script>
 	<title>Twitter Truth</title>
@@ -23,24 +23,28 @@
 			<h1>Twitter Truth</h1>
 		</div>
 		<div class="text-center">
-			<h4>
-                Search disaster tweets to see if they are real
-			</h4>
+			<h5>
+				Search disaster tweets by keyword to see if they are real
+			</h5>
 		</div>
 	</header>
-	<main>
-      	<div class="col-sm-3"></div>
-      	<div class="col-sm-6">
-      		<form class="form-group">
-      			<input class="form-control" id="tweetText" type="text" name="tweetText" placeholder="Please enter tweet text here">
-				<br/><br/>
-				<input type="button" class="btn btn-default btn-lg" value="Submit" id="tweetSubmit">
-      		</form>
-      		<hr>
-      	</div>
-	</main>
-	<footer>
-
-	</footer>
+	<div class="container" id="container">
+		<div class="row">
+			<div class="col"></div>
+			<div class="col">
+				<form class="form-group">
+					<input class="form-control" id="tweetText" type="text" name="tweetText" placeholder="Please enter a disaster keyword here">
+					<br/>
+					<div class="col-sm-12 text-center">
+						<button class="btn btn-default btn-lg text-center" id="tweetSubmit">Submit</button>
+					</div>
+				</form>
+			</div>
+			<div class="col"></div>
+		</div>
+		<div id="tweetsContainer">
+			
+		</div>
+	</div>
 </body>
 </html>
