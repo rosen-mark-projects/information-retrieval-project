@@ -8,4 +8,7 @@ tensorflow >= 1.11.0   # CPU Version of TensorFlow.
 psycopg2==2.8.4
 numpy==1.18.1
 scikit-learn==0.22.1
+wordcloud
+sentencepiece
+tensorflow_hub
 # tensorflow-gpu  >= 1.11.0  # GPU version of TensorFlow.
