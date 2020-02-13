@@ -24,7 +24,7 @@ def get_tweets():
 def get_tweets_from_db(keyword):
     cur = conn.cursor()
     cur.execute(
-        f"SELECT text, keyword, url FROM disaster_tweets WHERE keyword='{keyword}'")
+        "SELECT text, keyword, url FROM disaster_tweets WHERE keyword='{}'".format(keyword))
     data = cur.fetchall()
     return data
     # TODO
