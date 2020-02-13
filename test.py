@@ -4,15 +4,7 @@ import tweepy as tw
 import pandas as pd
 from dotenv import load_dotenv
 
-
-PROJECT_PATH = os.path.abspath(os.path.dirname(__file__))
-load_dotenv(os.path.join(os.path.abspath(
-    os.path.dirname(__file__)), '.env'), override=True)
-
-CONSUMER_KEY = os.environ.get('CONSUMER_KEY')
-CONSUMER_SECRET = os.environ.get('CONSUMER_SECRET')
-ACCESS_TOKEN = os.environ.get('ACCESS_TOKEN')
-ACCESS_TOKEN_SECRET = os.environ.get('ACCESS_TOKEN_SECRET')
+from config import CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET
 
 auth = tw.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
 auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)

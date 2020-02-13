@@ -13,24 +13,9 @@ from sqlalchemy import (
 
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import text
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-
-PROJECT_PATH = os.path.abspath(os.path.dirname(__file__))
-load_dotenv(os.path.join(os.path.abspath(
-    os.path.dirname(__file__)), '.env'), override=True)
-
-POSTGRES_USER = os.environ.get('POSTGRES_USER', os.environ.get('USER'))
-POSTGRES_PASS = os.environ.get('POSTGRES_PASS', '')
-POSTGRES_HOST = os.environ.get('POSTGRES_HOST', 'localhost')
-POSTGRES_DB = os.environ.get('POSTGRES_DB', 'tweet_db')
-SQLALCHEMY_DATABASE_URI = 'postgresql://{}:{}@{}/{}'.format(POSTGRES_USER, POSTGRES_PASS,
-                                                            POSTGRES_HOST, POSTGRES_DB)
-
-engine = create_engine(SQLALCHEMY_DATABASE_URI)
-Base = declarative_base(engine)
+from config import Base, engine
 
 
 class Tweets(Base):

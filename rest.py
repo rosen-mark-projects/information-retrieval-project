@@ -3,19 +3,8 @@ import os
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import psycopg2
 
-
-PROJECT_PATH = os.path.abspath(os.path.dirname(__file__))
-load_dotenv(os.path.join(os.path.abspath(
-    os.path.dirname(__file__)), '.env'), override=True)
-
-POSTGRES_USER = os.environ.get('POSTGRES_USER')
-POSTGRES_PASS = os.environ.get('POSTGRES_PASS')
-POSTGRES_HOST = os.environ.get('POSTGRES_HOST', 'localhost')
-POSTGRES_DB = os.environ.get('POSTGRES_DB', 'tweet_db')
-conn = psycopg2.connect(database=POSTGRES_DB, user=POSTGRES_USER,
-                        password=POSTGRES_PASS, host=POSTGRES_HOST)
+from config import conn
 
 
 app = Flask(__name__)
