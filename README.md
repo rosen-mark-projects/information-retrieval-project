@@ -1,4 +1,4 @@
-s# information-retrieval-project
+# information-retrieval-project
 
 ## Development setup
     virtualenv -p python3 env
