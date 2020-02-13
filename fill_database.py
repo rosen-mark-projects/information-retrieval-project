@@ -10,18 +10,17 @@ from config import CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SEC
 
 def read_keywords():
     with open('keywords.txt', 'r') as keywords_file:
-        for line in keywords_file:
+        for line in ['wildfire', 'earthquake']:
             for keyword in line.split():
                 print(keyword)
                 tweets = get_tweets_for_keyword(keyword)
                 fill_tweets_in_db(tweets)
-                return
 
 def get_tweets_for_keyword(keyword):
     auth = tw.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
     auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
     api = tw.API(auth, wait_on_rate_limit=True)
-    tweets = tw.Cursor(api.search, q=keyword, lang="en", since="2020-02-01", 
+    tweets = tw.Cursor(api.search, q=keyword + ' -filter:retweets', lang="en", since="2020-02-01", 
                         tweet_mode="extended", exclude_replies=True).items(10)
     dicts = []
     for tweet in tweets:

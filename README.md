@@ -4,6 +4,7 @@
     virtualenv -p python3 env
     source env/bin/activate
     pip install -r requirements.txt
+    python setup.py develop
 
 Create `.env` file in root path replacing the bracketed values:
 
