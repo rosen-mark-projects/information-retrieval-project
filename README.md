@@ -22,3 +22,10 @@ Create `.env` file in root path replacing the bracketed values:
     source env/bin/activate
 	python create_database
 	python fill_database
+
+### To use Sentence encoder model from 
+    wget https://tfhub.dev/google/universal-sentence-encoder/4
+    tar -xvzf 4.tar.gz models/Sentence_encoder/embedded
+    source env/bin/activate
+	python models/Sentence_encoder train
+
