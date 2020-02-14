@@ -11,4 +11,6 @@ scikit-learn==0.22.1
 tensorflow-hub==0.7.0
 keras==2.3.1
 nltk==3.4.5
+wordcloud
+sentencepiece
 # tensorflow-gpu  >= 1.11.0  # GPU version of TensorFlow.
