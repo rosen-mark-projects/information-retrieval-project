@@ -63,8 +63,7 @@ test['keyword'] = test['keyword'].fillna('no_keyword')
 train = train.fillna(0)
 test = test.fillna(0)
 
-train = train[0:1]
-test = test[:1]
+test = test[:10]
 
 dfs = create_features(train, test)
 
@@ -88,30 +87,30 @@ for index, row in train.iterrows():
     train_input_keywords = bert_encode(row.keyword, tokenizer, max_len=160)
     all_train_input.append(train_input)
     all_train_input.append(train_input_keywords)
-    all_train_input.append(row.word_count)
-    all_train_input.append(row.unique_word_count)
-    all_train_input.append(row.stop_word_count)
-    all_train_input.append(row.url_count)
-    all_train_input.append(row.mean_word_length)
-    all_train_input.append(row.char_count)
-    all_train_input.append(row.punctuation_count)
-    all_train_input.append(row.hashtag_count)
-    all_train_input.append(row.mention_count)
+    all_train_input.append(np.array([row.word_count]))
+    all_train_input.append(np.array([row.unique_word_count]))
+    all_train_input.append(np.array([row.stop_word_count]))
+    all_train_input.append(np.array([row.url_count]))
+    all_train_input.append(np.array([row.mean_word_length]))
+    all_train_input.append(np.array([row.char_count]))
+    all_train_input.append(np.array([row.punctuation_count]))
+    all_train_input.append(np.array([row.hashtag_count]))
+    all_train_input.append(np.array([row.mention_count]))
 
 for index, row in test.iterrows():
     test_input = bert_encode(row.text_cleaned, tokenizer, max_len=160)
     test_input_keywords = bert_encode(row.keyword, tokenizer, max_len=160)
     all_test_input.append(test_input)
     all_test_input.append(test_input_keywords)
-    all_test_input.append(row.word_count)
-    all_test_input.append(row.unique_word_count)
-    all_test_input.append(row.stop_word_count)
-    all_test_input.append(row.url_count)
-    all_test_input.append(row.mean_word_length)
-    all_test_input.append(row.char_count)
-    all_test_input.append(row.punctuation_count)
-    all_test_input.append(row.hashtag_count)
-    all_test_input.append(row.mention_count)
+    all_test_input.append(np.array([row.word_count]))
+    all_test_input.append(np.array([row.unique_word_count]))
+    all_test_input.append(np.array([row.stop_word_count]))
+    all_test_input.append(np.array([row.url_count]))
+    all_test_input.append(np.array([row.mean_word_length]))
+    all_test_input.append(np.array([row.char_count]))
+    all_test_input.append(np.array([row.punctuation_count]))
+    all_test_input.append(np.array([row.hashtag_count]))
+    all_test_input.append(np.array([row.mention_count]))
 
 
 train_labels = train.target.values
@@ -120,11 +119,11 @@ train_labels = train.target.values
 model = build_model(bert_layer, max_len=160)
 model.summary()
 
-# train_history = model.fit(
-#     all_train_input, train_labels,
-#     validation_split=0.2,
-#     epochs=3,
-#     batch_size=16
-# )
-#
-# test_pred = model.predict(test_input)
+train_history = model.fit(
+    all_train_input, train_labels,
+    validation_split=0.2,
+    epochs=3,
+    batch_size=16
+)
+
+test_pred = model.predict(test_input)
