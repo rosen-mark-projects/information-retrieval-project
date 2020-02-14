@@ -8,122 +8,102 @@ from tensorflow.keras.callbacks import ModelCheckpoint
 import tensorflow_hub as hub
 
 from feature_creator import create_features
-from tweet_cleaner import clean
+from tweet_cleaner import clean_tweet
 from tweet_relabeler import relabel_tweets
 
 import tokenization
 
 
-def bert_encode(text, tokenizer, max_len=512):
-    all_tokens = []
-    all_masks = []
-    all_segments = []
+def process_data(training, test):
+    training['keyword'] = training['keyword'].fillna('no_keyword')
+    test['keyword'] = test['keyword'].fillna('no_keyword')
+    training = training.fillna(0)
+    test = test.fillna(0)
 
-    text = tokenizer.tokenize(text)
+    dfs = create_features(training, test)
+    training = dfs[0]
+    test = dfs[1]
 
-    text = text[:max_len - 2]
-    input_sequence = ["[CLS]"] + text + ["[SEP]"]
-    pad_len = max_len - len(input_sequence)
+    training['clean_text'] = training['text'].apply(lambda tweet: clean_tweet(tweet))
+    test['clean_text'] = test['text'].apply(lambda tweet: clean_tweet(tweet))
 
-    tokens = tokenizer.convert_tokens_to_ids(input_sequence)
-    tokens += [0] * pad_len
-    pad_masks = [1] * len(input_sequence) + [0] * pad_len
-    segment_ids = [0] * max_len
+    training = relabel_tweets(training)
 
-    all_tokens.append(tokens)
-    all_masks.append(pad_masks)
-    all_segments.append(segment_ids)
+    return [training, test]
 
-    return np.array(all_tokens), np.array(all_masks), np.array(all_segments)
+def encode_tweets(tweets, tokenizer, max_length=512):
+    tokens = []
+    masks = []
+    segments = []
+    meta_features_count = 7
+
+    for index, row in tweets.iterrows():
+        tweet = tokenizer.tokenize(row.text)
+        keyword = tokenizer.tokenize(row.keyword)
+
+        tweet = tweet[:max_length - 2]
+        inputs = ["[CLS]"] + keyword + tweet + ["[SEP]"]
+        pad_length = max_length - len(inputs)
+
+        current_tokens = tokenizer.convert_tokens_to_ids(inputs)
+        current_tokens += [row.words, row.unique_words, row.stop_words, row.urls, row.mean_word_length, row.hashtags, row.mentionings]
+        pad_length -= meta_features_count # decrement with meta features count
+        current_tokens += [0] * pad_length
+        pad_masks = [1] * len(inputs) + [1] * meta_features_count + [0] * pad_length
+        segment_ids = [0] * max_length
+
+        tokens.append(current_tokens)
+        masks.append(pad_masks)
+        segments.append(segment_ids)
+
+    return np.array(tokens), np.array(masks), np.array(segments)
 
 
-def build_model(bert_layer, max_len=512):
-    input_word_ids = Input(shape=(max_len,), dtype=tf.int32, name="input_word_ids")
-    input_mask = Input(shape=(max_len,), dtype=tf.int32, name="input_mask")
-    segment_ids = Input(shape=(max_len,), dtype=tf.int32, name="segment_ids")
+def create_bert_model(layer, max_length=512):
+    ids = Input(shape=(max_length,), dtype=tf.int32, name="input_word_ids")
+    mask = Input(shape=(max_length,), dtype=tf.int32, name="input_mask")
+    segments = Input(shape=(max_length,), dtype=tf.int32, name="segment_ids")
 
-    _, sequence_output = bert_layer([input_word_ids, input_mask, segment_ids])
-    clf_output = sequence_output[:, 0, :]
+    _, output = layer([ids, mask, segments])
+    clf_output = output[:, 0, :]
     out = Dense(1, activation='sigmoid')(clf_output)
 
-    model = Model(inputs=[input_word_ids, input_mask, segment_ids], outputs=out)
-    model.compile(Adam(lr=2e-6), loss='binary_crossentropy', metrics=['accuracy'])
+    result_model = Model(inputs=[ids, mask, segments], outputs=out)
+    result_model.compile(Adam(lr=2e-6), loss='binary_crossentropy', metrics=['accuracy'])
 
-    return model
+    return result_model
 
-module_url = "https://tfhub.dev/tensorflow/bert_en_uncased_L-24_H-1024_A-16/1"
-bert_layer = hub.KerasLayer(module_url, trainable=True)
+bert_url = "https://tfhub.dev/tensorflow/bert_en_uncased_L-24_H-1024_A-16/1"
+bert_layer = hub.KerasLayer(bert_url, trainable=True)
 
-train = pd.read_csv("./../train.csv")
-test = pd.read_csv("./../test.csv")
+training_data = pd.read_csv("./../train.csv")
+test_data = pd.read_csv("./../test.csv")
+training_data = training_data[:10]
+test_data = test_data[:10]
 
-train['keyword'] = train['keyword'].fillna('no_keyword')
-test['keyword'] = test['keyword'].fillna('no_keyword')
+processed_data = process_data(training_data, test_data)
+training_data = processed_data[0]
+test_data = processed_data[1]
 
-train = train.fillna(0)
-test = test.fillna(0)
+vocabulary = bert_layer.resolved_object.vocab_file.asset_path.numpy()
+lowercase = bert_layer.resolved_object.do_lower_case.numpy()
+full_tokenizer = tokenization.FullTokenizer(vocabulary, lowercase)
 
-test = test[:10]
+training_input = encode_tweets(training_data, full_tokenizer, max_length=160)
+test_input = encode_tweets(test_data, full_tokenizer, max_length=160)
 
-dfs = create_features(train, test)
+training_targets = training_data.target.values
 
-train = dfs[0]
-test = dfs[1]
+bert_model = create_bert_model(bert_layer, max_length=160)
+bert_model.summary()
 
-train['text_cleaned'] = train['text'].apply(lambda s : clean(s))
-test['text_cleaned'] = test['text'].apply(lambda s : clean(s))
-
-train = relabel_tweets(train)
-
-vocab_file = bert_layer.resolved_object.vocab_file.asset_path.numpy()
-do_lower_case = bert_layer.resolved_object.do_lower_case.numpy()
-tokenizer = tokenization.FullTokenizer(vocab_file, do_lower_case)
-
-all_train_input = []
-all_test_input = []
-
-for index, row in train.iterrows():
-    train_input = bert_encode(row.text_cleaned, tokenizer, max_len=160)
-    train_input_keywords = bert_encode(row.keyword, tokenizer, max_len=160)
-    all_train_input.append(train_input)
-    all_train_input.append(train_input_keywords)
-    all_train_input.append(np.array([row.word_count]))
-    all_train_input.append(np.array([row.unique_word_count]))
-    all_train_input.append(np.array([row.stop_word_count]))
-    all_train_input.append(np.array([row.url_count]))
-    all_train_input.append(np.array([row.mean_word_length]))
-    all_train_input.append(np.array([row.char_count]))
-    all_train_input.append(np.array([row.punctuation_count]))
-    all_train_input.append(np.array([row.hashtag_count]))
-    all_train_input.append(np.array([row.mention_count]))
-
-for index, row in test.iterrows():
-    test_input = bert_encode(row.text_cleaned, tokenizer, max_len=160)
-    test_input_keywords = bert_encode(row.keyword, tokenizer, max_len=160)
-    all_test_input.append(test_input)
-    all_test_input.append(test_input_keywords)
-    all_test_input.append(np.array([row.word_count]))
-    all_test_input.append(np.array([row.unique_word_count]))
-    all_test_input.append(np.array([row.stop_word_count]))
-    all_test_input.append(np.array([row.url_count]))
-    all_test_input.append(np.array([row.mean_word_length]))
-    all_test_input.append(np.array([row.char_count]))
-    all_test_input.append(np.array([row.punctuation_count]))
-    all_test_input.append(np.array([row.hashtag_count]))
-    all_test_input.append(np.array([row.mention_count]))
-
-
-train_labels = train.target.values
-
-
-model = build_model(bert_layer, max_len=160)
-model.summary()
-
-train_history = model.fit(
-    all_train_input, train_labels,
+train_history = bert_model.fit(
+    training_input, training_targets,
     validation_split=0.2,
     epochs=3,
     batch_size=16
 )
 
-test_pred = model.predict(test_input)
+prediction = bert_model.predict(test_input)
+
+print(prediction)

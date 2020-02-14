@@ -6,8 +6,8 @@ from collections import defaultdict
 
 import numpy as np
 
-def clean(tweet):
-    # Special characters
+def clean_tweet(tweet):
+    # Clean the special characters
     tweet = re.sub(r"\x89Û_", "", tweet)
     tweet = re.sub(r"\x89ÛÒ", "", tweet)
     tweet = re.sub(r"\x89ÛÓ", "", tweet)
@@ -32,7 +32,7 @@ def clean(tweet):
     tweet = re.sub(r"å£3million", "3 million", tweet)
     tweet = re.sub(r"åÀ", "", tweet)
 
-    # Contractions
+    # Clean the contractions
     tweet = re.sub(r"he's", "he is", tweet)
     tweet = re.sub(r"there's", "there is", tweet)
     tweet = re.sub(r"We're", "We are", tweet)
@@ -125,12 +125,12 @@ def clean(tweet):
     tweet = re.sub(r"youve", "you have", tweet)
     tweet = re.sub(r"donå«t", "do not", tweet)
 
-    # Character entity references
+    # Clean the character entity references
     tweet = re.sub(r"&gt;", ">", tweet)
     tweet = re.sub(r"&lt;", "<", tweet)
     tweet = re.sub(r"&amp;", "&", tweet)
 
-    # Typos, slang and informal abbreviations
+    # Clean the typos, slang and informal abbreviations
     tweet = re.sub(r"w/e", "whatever", tweet)
     tweet = re.sub(r"w/", "with", tweet)
     tweet = re.sub(r"USAgov", "USA government", tweet)
@@ -150,7 +150,7 @@ def clean(tweet):
     tweet = re.sub(r"lmao", "laughing my ass off", tweet)
     tweet = re.sub(r"TRAUMATISED", "traumatized", tweet)
 
-    # Hashtags and usernames
+    # clean the hashtags and usernames
     tweet = re.sub(r"IranDeal", "Iran Deal", tweet)
     tweet = re.sub(r"ArianaGrande", "Ariana Grande", tweet)
     tweet = re.sub(r"camilacabello97", "camila cabello", tweet)
@@ -715,20 +715,20 @@ def clean(tweet):
     tweet = re.sub(r"JoelHeyman", "Joel Heyman", tweet)
     tweet = re.sub(r"viaYouTube", "via YouTube", tweet)
 
-    # Urls
+    # Clean the urls
     tweet = re.sub(r"https?:\/\/t.co\/[A-Za-z0-9]+", "", tweet)
 
-    # Words with punctuations and special characters
+    # Clena the words with punctuations and special characters
     punctuations = '@#!?+&*[]-%.:/();$=><|{}^' + "'`"
     for p in punctuations:
         tweet = tweet.replace(p, ' {} '.format(p))
 
-    # ... and ..
+    # Clean the ... and ..
     tweet = tweet.replace('...', ' ... ')
     if '...' not in tweet:
         tweet = tweet.replace('..', ' ... ')
 
-        # Acronyms
+    # Clean the acronyms
     tweet = re.sub(r"MH370", "Malaysia Airlines Flight 370", tweet)
     tweet = re.sub(r"mÌ¼sica", "music", tweet)
     tweet = re.sub(r"okwx", "Oklahoma City Weather", tweet)
@@ -742,8 +742,6 @@ def clean(tweet):
     tweet = re.sub(r"wordpressdotcom", "wordpress", tweet)
     tweet = re.sub(r"usNWSgov", "United States National Weather Service", tweet)
     tweet = re.sub(r"Suruc", "Sanliurfa", tweet)
-
-    # Grouping same words without embeddings
     tweet = re.sub(r"Bestnaijamade", "bestnaijamade", tweet)
     tweet = re.sub(r"SOUDELOR", "Soudelor", tweet)
 
