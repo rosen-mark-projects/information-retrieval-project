@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 import pandas as pd
 import tensorflow as tf
@@ -7,12 +9,13 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.callbacks import ModelCheckpoint
 import tensorflow_hub as hub
 
-from feature_creator import create_features
-from tweet_cleaner import clean_tweet
-from tweet_relabeler import relabel_tweets
+from models.bert_model.feature_creator import create_features
+from models.bert_model.tweet_cleaner import clean_tweet
+from models.bert_model.tweet_relabeler import relabel_tweets
+from models.bert_model.create_bert_model import create_bert_model, load_bert
+from models.bert_model import tokenization
 
-import tokenization
-
+from config import PROJECT_PATH
 
 def process_data(training):
     training['keyword'] = training['keyword'].fillna('no_keyword')
@@ -51,25 +54,6 @@ def encode_tweets(tweets, tokenizer, max_length=512):
 
     return np.array(tokens), np.array(masks), np.array(segments)
 
-
-def create_bert_model(layer, max_length=512):
-    ids = Input(shape=(max_length,), dtype=tf.int32, name="input_word_ids")
-    mask = Input(shape=(max_length,), dtype=tf.int32, name="input_mask")
-    segments = Input(shape=(max_length,), dtype=tf.int32, name="segment_ids")
-
-    _, output = layer([ids, mask, segments])
-    clf_output = output[:, 0, :]
-    out = Dense(1, activation='sigmoid')(clf_output)
-
-    result_model = Model(inputs=[ids, mask, segments], outputs=out)
-    result_model.compile(Adam(lr=2e-6), loss='binary_crossentropy', metrics=['accuracy'])
-
-    return result_model
-
-# bert_url = "bert"
-
-bert_layer = hub.KerasLayer(bert_url, trainable=True)
-
 training_data = pd.read_csv("./../train.csv")
 test_data = pd.read_csv("./../test.csv")
 
@@ -81,9 +65,7 @@ test_data = process_data(test_data)
 
 training_data = relabel_tweets(training_data)
 
-vocabulary = bert_layer.resolved_object.vocab_file.asset_path.numpy()
-lowercase = bert_layer.resolved_object.do_lower_case.numpy()
-full_tokenizer = tokenization.FullTokenizer(vocabulary, lowercase)
+bert_layer, full_tokenizer = load_bert()
 
 training_input = encode_tweets(training_data, full_tokenizer, max_length=160)
 test_input = encode_tweets(test_data, full_tokenizer, max_length=160)
@@ -93,7 +75,6 @@ training_targets = training_data.target.values
 bert_model = create_bert_model(bert_layer, max_length=160)
 bert_model.summary()
 
-
 train_history = bert_model.fit(
     training_input, training_targets,
     validation_split=0.2,
@@ -101,7 +82,7 @@ train_history = bert_model.fit(
     batch_size=16
 )
 
-tf.keras.experimental.export_saved_model(bert_layer, 'model.h5')
+bert_model.save_weights(os.path.join(PROJECT_PATH, 'models/bert_model/bert_weights.h5'))
 
 prediction = bert_model.predict(test_input)
 

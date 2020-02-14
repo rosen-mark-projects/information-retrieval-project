@@ -10,6 +10,7 @@ from config import conn, PROJECT_PATH
 from models.Sentence_encoder.clean import clean_text
 from models.Sentence_encoder.build_model import create_model
 from models.bert_model.bert_model import process_data
+from models.bert_model.create_bert_model import load_bert, create_bert_model
 
 app = Flask(__name__)
 CORS(app)
@@ -18,7 +19,9 @@ model = create_model()
 model.load_weights(os.path.join(PROJECT_PATH, "models/Sentence_encoder/weights.best.hdf5"))
 
 # for bert model
-# model = keras.models.load_model(os.path.join(PROJECT_PATH, "models/bert_model/model.h5"))
+# bert_layer, full_tokenizer = load_bert()
+# model = create_bert_model(bert_layer, max_length=160)
+# model = keras.models.load_model(os.path.join(PROJECT_PATH, "models/bert_model/bert_weights.h5"))
 
 @app.route('/tweets', methods=['GET'])
 def get_tweets():
