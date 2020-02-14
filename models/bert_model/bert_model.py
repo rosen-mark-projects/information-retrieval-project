@@ -14,22 +14,15 @@ from tweet_relabeler import relabel_tweets
 import tokenization
 
 
-def process_data(training, test):
+def process_data(training):
     training['keyword'] = training['keyword'].fillna('no_keyword')
-    test['keyword'] = test['keyword'].fillna('no_keyword')
     training = training.fillna(0)
-    test = test.fillna(0)
 
-    dfs = create_features(training, test)
-    training = dfs[0]
-    test = dfs[1]
+    training = create_features(training)
 
     training['clean_text'] = training['text'].apply(lambda tweet: clean_tweet(tweet))
-    test['clean_text'] = test['text'].apply(lambda tweet: clean_tweet(tweet))
 
-    training = relabel_tweets(training)
-
-    return [training, test]
+    return training
 
 def encode_tweets(tweets, tokenizer, max_length=512):
     tokens = []
@@ -73,17 +66,20 @@ def create_bert_model(layer, max_length=512):
 
     return result_model
 
-bert_url = "https://tfhub.dev/tensorflow/bert_en_uncased_L-24_H-1024_A-16/1"
+# bert_url = "bert"
+
 bert_layer = hub.KerasLayer(bert_url, trainable=True)
 
 training_data = pd.read_csv("./../train.csv")
 test_data = pd.read_csv("./../test.csv")
+
 training_data = training_data[:10]
 test_data = test_data[:10]
 
-processed_data = process_data(training_data, test_data)
-training_data = processed_data[0]
-test_data = processed_data[1]
+training_data = process_data(training_data)
+test_data = process_data(test_data)
+
+training_data = relabel_tweets(training_data)
 
 vocabulary = bert_layer.resolved_object.vocab_file.asset_path.numpy()
 lowercase = bert_layer.resolved_object.do_lower_case.numpy()
@@ -97,12 +93,15 @@ training_targets = training_data.target.values
 bert_model = create_bert_model(bert_layer, max_length=160)
 bert_model.summary()
 
+
 train_history = bert_model.fit(
     training_input, training_targets,
     validation_split=0.2,
     epochs=3,
     batch_size=16
 )
+
+tf.keras.experimental.export_saved_model(bert_layer, 'model.h5')
 
 prediction = bert_model.predict(test_input)
 

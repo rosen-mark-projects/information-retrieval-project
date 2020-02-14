@@ -4,17 +4,21 @@ import pandas as pd
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from keras.models import model_from_yaml
+import keras
 
 from config import conn, PROJECT_PATH
 from models.Sentence_encoder.clean import clean_text
 from models.Sentence_encoder.build_model import create_model
+from models.bert_model.bert_model import process_data
 
 app = Flask(__name__)
 CORS(app)
 
 model = create_model()
 model.load_weights(os.path.join(PROJECT_PATH, "models/Sentence_encoder/weights.best.hdf5"))
+
+# for bert model
+# model = keras.models.load_model(os.path.join(PROJECT_PATH, "models/bert_model/model.h5"))
 
 @app.route('/tweets', methods=['GET'])
 def get_tweets():
@@ -43,6 +47,12 @@ def convert_to_dicts(tweets):
     tweets_df['target'] = pred_Y.round().astype(int)
     print(pred_Y)
 
+    # for bert prediction
+    # tweets_df = pd.DataFrame(tweets, columns=['text', 'keyword', 'url'])
+    # tweets_data = process_data(tweets_df)
+    # tweets_data = encode_tweets(tweets_df, full_tokenizer, max_length=160)
+    # pred_Y = model.predict(tweets_data)
+    # tweets_df['target'] = pred_Y.round().astype(int)
     return tweets_df.to_dict(orient='records')
 
 
