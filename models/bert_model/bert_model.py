@@ -10,8 +10,6 @@ from tensorflow.keras.callbacks import ModelCheckpoint
 import tensorflow_hub as hub
 
 from models.bert_model.feature_creator import create_features
-from models.bert_model.tweet_cleaner import clean_tweet
-from models.bert_model.tweet_relabeler import relabel_tweets
 from models.bert_model.create_bert_model import create_bert_model, load_bert
 from models.bert_model import tokenization
 
@@ -23,9 +21,6 @@ def process_data(training):
     training = training.fillna(0)
 
     training = create_features(training)
-
-    training['clean_text'] = training['text'].apply(
-        lambda tweet: clean_tweet(tweet))
 
     return training
 
@@ -60,29 +55,29 @@ def encode_tweets(tweets, tokenizer, max_length=512):
     return np.array(tokens), np.array(masks), np.array(segments)
 
 
-training_data = pd.read_csv(os.path.join(PROJECT_PATH, "models/train.csv"))
+if __name__ == '__main__':
+    training_data = pd.read_csv(os.path.join(PROJECT_PATH, "models/train.csv"))
 
-training_data = training_data[:10]
+    training_data = training_data[:10]
 
-training_data = process_data(training_data)
+    training_data = process_data(training_data)
 
-training_data = relabel_tweets(training_data)
+    bert_layer, full_tokenizer = load_bert()
 
-bert_layer, full_tokenizer = load_bert()
+    training_input = encode_tweets(
+        training_data, full_tokenizer, max_length=160)
 
-training_input = encode_tweets(training_data, full_tokenizer, max_length=160)
+    training_targets = training_data.target.values
 
-training_targets = training_data.target.values
+    bert_model = create_bert_model(bert_layer, max_length=160)
+    bert_model.summary()
 
-bert_model = create_bert_model(bert_layer, max_length=160)
-bert_model.summary()
+    train_history = bert_model.fit(
+        training_input, training_targets,
+        validation_split=0.2,
+        epochs=3,
+        batch_size=16
+    )
 
-train_history = bert_model.fit(
-    training_input, training_targets,
-    validation_split=0.2,
-    epochs=3,
-    batch_size=16
-)
-
-bert_model.save_weights(os.path.join(
-    PROJECT_PATH, 'models/bert_model/bert_weights.h5'))
+    bert_model.save_weights(os.path.join(
+        PROJECT_PATH, 'models/bert_model/bert_weights.h5'))
