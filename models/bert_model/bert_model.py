@@ -17,15 +17,18 @@ from models.bert_model import tokenization
 
 from config import PROJECT_PATH
 
+
 def process_data(training):
     training['keyword'] = training['keyword'].fillna('no_keyword')
     training = training.fillna(0)
 
     training = create_features(training)
 
-    training['clean_text'] = training['text'].apply(lambda tweet: clean_tweet(tweet))
+    training['clean_text'] = training['text'].apply(
+        lambda tweet: clean_tweet(tweet))
 
     return training
+
 
 def encode_tweets(tweets, tokenizer, max_length=512):
     tokens = []
@@ -42,10 +45,12 @@ def encode_tweets(tweets, tokenizer, max_length=512):
         pad_length = max_length - len(inputs)
 
         current_tokens = tokenizer.convert_tokens_to_ids(inputs)
-        current_tokens += [row.words, row.unique_words, row.stop_words, row.urls, row.mean_word_length, row.hashtags, row.mentionings]
-        pad_length -= meta_features_count # decrement with meta features count
+        current_tokens += [row.words, row.unique_words, row.stop_words,
+                           row.urls, row.mean_word_length, row.hashtags, row.mentionings]
+        pad_length -= meta_features_count  # decrement with meta features count
         current_tokens += [0] * pad_length
-        pad_masks = [1] * len(inputs) + [1] * meta_features_count + [0] * pad_length
+        pad_masks = [1] * len(inputs) + [1] * \
+            meta_features_count + [0] * pad_length
         segment_ids = [0] * max_length
 
         tokens.append(current_tokens)
@@ -54,21 +59,18 @@ def encode_tweets(tweets, tokenizer, max_length=512):
 
     return np.array(tokens), np.array(masks), np.array(segments)
 
-training_data = pd.read_csv("./../train.csv")
-test_data = pd.read_csv("./../test.csv")
+
+training_data = pd.read_csv(os.path.join(PROJECT_PATH, "models/train.csv"))
 
 training_data = training_data[:10]
-test_data = test_data[:10]
 
 training_data = process_data(training_data)
-test_data = process_data(test_data)
 
 training_data = relabel_tweets(training_data)
 
 bert_layer, full_tokenizer = load_bert()
 
 training_input = encode_tweets(training_data, full_tokenizer, max_length=160)
-test_input = encode_tweets(test_data, full_tokenizer, max_length=160)
 
 training_targets = training_data.target.values
 
@@ -82,8 +84,5 @@ train_history = bert_model.fit(
     batch_size=16
 )
 
-bert_model.save_weights(os.path.join(PROJECT_PATH, 'models/bert_model/bert_weights.h5'))
-
-prediction = bert_model.predict(test_input)
-
-print(prediction)
+bert_model.save_weights(os.path.join(
+    PROJECT_PATH, 'models/bert_model/bert_weights.h5'))
