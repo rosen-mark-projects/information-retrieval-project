@@ -10,8 +10,6 @@ from tensorflow.keras.callbacks import ModelCheckpoint
 import tensorflow_hub as hub
 
 from models.bert_model.feature_creator import create_features
-from models.bert_model.tweet_cleaner import clean_tweet
-from models.bert_model.tweet_relabeler import relabel_tweets
 from models.bert_model.create_bert_model import create_bert_model, load_bert
 from models.bert_model import tokenization
 
@@ -22,8 +20,6 @@ def process_data(training):
     training = training.fillna(0)
 
     training = create_features(training)
-
-    training['clean_text'] = training['text'].apply(lambda tweet: clean_tweet(tweet))
 
     return training
 
@@ -62,8 +58,6 @@ test_data = test_data[:10]
 
 training_data = process_data(training_data)
 test_data = process_data(test_data)
-
-training_data = relabel_tweets(training_data)
 
 bert_layer, full_tokenizer = load_bert()
 
